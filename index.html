@@ -58,16 +58,34 @@
   .add{
     background:#fff;border:1px solid var(--line);border-radius:var(--r);
     padding:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
-    box-shadow:0 1px 0 var(--shadow);margin-bottom:10px;
+    box-shadow:0 1px 0 var(--shadow);margin-top:18px;
   }
-  .add input,.add select{
+  .add input{
     font:inherit;border:1px solid var(--line);border-radius:9px;
     padding:11px 12px;background:var(--paper);color:var(--ink);
   }
   .add input.name{flex:1 1 180px;min-width:0}
-  .add input.qty{width:74px;text-align:center}
-  .add select{flex:0 1 140px}
-  .add input:focus,.add select:focus{outline:2px solid var(--jar);outline-offset:-1px;background:#fff}
+  .add input:focus{outline:2px solid var(--jar);outline-offset:-1px;background:#fff}
+
+  .stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:9px;background:var(--paper);overflow:hidden;flex:0 0 auto}
+  .stepper button{
+    width:40px;height:42px;border:none;background:transparent;font:inherit;
+    font-size:20px;font-weight:600;color:var(--ink);cursor:pointer;transition:.12s;
+    -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  }
+  .stepper button:hover{background:#fff}
+  .stepper button:disabled{opacity:.35;cursor:not-allowed}
+  .qval{min-width:30px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+
+  .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;flex:0 0 auto}
+  .seg button{
+    font:inherit;font-size:14px;font-weight:500;color:var(--ink-soft);
+    background:var(--paper);border:none;padding:11px 16px;cursor:pointer;transition:.12s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .seg button+button{border-left:1px solid var(--line)}
+  .seg button:hover{background:#fff}
+  .seg button.on{background:var(--ink);color:var(--paper)}
   .add .go{
     background:var(--jar);color:#fff;border:none;border-radius:9px;
     padding:11px 18px;font-weight:600;cursor:pointer;transition:.15s;flex:0 0 auto;
@@ -98,7 +116,6 @@
     align-items:center;justify-content:center;line-height:1;
   }
   .total .n{font-family:'Fraunces',serif;font-weight:600;font-size:21px}
-  .total .u{font-size:9px;color:var(--ink-soft);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
   .item.zero .total{background:#f4ecec}
   .item.zero .total .n{color:var(--jar-deep)}
   .info{flex:1 1 auto;min-width:0}
@@ -108,8 +125,6 @@
     font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
     color:var(--leaf);background:#eef1e9;padding:2px 7px;border-radius:5px;
   }
-  .lowflag{font-size:10.5px;font-weight:600;color:var(--low);background:#f7f0db;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.04em}
-  .meta{font-size:12px;color:var(--ink-soft);margin-top:5px}
   .ctrl{flex:0 0 auto;display:flex;align-items:center;gap:8px}
   .ctrl button{
     width:40px;height:40px;border-radius:10px;border:1px solid var(--line);
@@ -147,8 +162,11 @@
 
   @media (max-width:480px){
     h1{font-size:32px}
+    .add input.name{flex:1 1 100%}
+    .stepper{flex:1 1 auto}
+    .seg{flex:1 1 auto}
+    .seg button{flex:1 1 0}
     .add .go{flex:1 1 100%}
-    .add select{flex:1 1 calc(100% - 82px)}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -175,35 +193,33 @@
     </div>
   </header>
 
-  <div class="add">
-    <input class="name" id="iname" type="text" placeholder="Add an item — e.g. tomato paste" autocomplete="off">
-    <input class="qty" id="iqty" type="number" min="1" value="1" aria-label="Quantity">
-    <select id="icat" aria-label="Category">
-      <option value="Pantry">Pantry</option>
-      <option value="Produce">Produce</option>
-      <option value="Dairy">Dairy</option>
-      <option value="Meat">Meat</option>
-      <option value="Frozen">Frozen</option>
-      <option value="Bakery">Bakery</option>
-      <option value="Drinks">Drinks</option>
-      <option value="Household">Household</option>
-      <option value="Other">Other</option>
-    </select>
-    <button class="go" id="iadd">Add</button>
-  </div>
-
   <div class="filters" id="filters"></div>
 
   <ul id="list"></ul>
+
+  <div class="add" id="add">
+    <input class="name" id="iname" type="text" placeholder="Add an item — e.g. tomato paste" autocomplete="off">
+    <div class="stepper" role="group" aria-label="Quantity">
+      <button type="button" id="qdec" aria-label="Decrease quantity">−</button>
+      <span class="qval" id="qval" aria-live="polite">1</span>
+      <button type="button" id="qinc" aria-label="Increase quantity">+</button>
+    </div>
+    <div class="seg" role="group" aria-label="Category">
+      <button type="button" class="on" data-cat="Pantry">Pantry</button>
+      <button type="button" data-cat="Other">Other</button>
+    </div>
+    <button class="go" id="iadd">Add</button>
+  </div>
 
   <footer>Saved on this device. Use Export to back up or move shelves.</footer>
 </div>
 
 <script>
-const LOW = 2; // low-stock threshold (<=)
 const KEY = 'pantry.v1';
 let items = load();
-let filter = 'All';
+let filter = 'Pantry';
+let addQty = 1;
+let addCat = 'Pantry';
 
 function load(){
   try{ return JSON.parse(localStorage.getItem(KEY)) || []; }
@@ -219,8 +235,8 @@ function fmtDate(ts){
 
 function addItem(){
   const name = iname.value.trim();
-  const qty = Math.max(1, parseInt(iqty.value)||1);
-  const cat = icat.value;
+  const qty = addQty;
+  const cat = addCat;
   if(!name) { iname.focus(); return; }
   const existing = items.find(i=>i.name.toLowerCase()===name.toLowerCase());
   if(existing){
@@ -229,8 +245,12 @@ function addItem(){
   } else {
     items.unshift({id:uid(), name, cat, open:false, events:[{delta:qty, ts:Date.now()}]});
   }
-  iname.value=''; iqty.value=1; iname.focus();
+  iname.value=''; addQty=1; qval.textContent='1'; updateStepper(); iname.focus();
   save(); render();
+}
+
+function updateStepper(){
+  qdec.disabled = addQty<=1;
 }
 
 function change(id, delta){
@@ -253,7 +273,9 @@ function toggle(id){
 }
 
 function categories(){
-  return [...new Set(items.map(i=>i.cat))].sort();
+  const base = ['Pantry','Other'];
+  const extra = [...new Set(items.map(i=>i.cat))].filter(c=>!base.includes(c)).sort();
+  return [...base, ...extra];
 }
 
 function renderFilters(){
@@ -292,7 +314,6 @@ function render(){
 
   shown.forEach(it=>{
     const total = totalOf(it);
-    const low = total>0 && total<=LOW;
     const li=document.createElement('li');
     li.className='item'+(it.open?' open':'')+(total<=0?' zero':'');
 
@@ -306,21 +327,16 @@ function render(){
       </div>`;
     }).join('');
 
-    const firstBuy = it.events.find(e=>e.delta>0);
-
     li.innerHTML = `
       <div class="row" data-toggle="${it.id}">
         <div class="total">
           <span class="n">${total}</span>
-          <span class="u">on hand</span>
         </div>
         <div class="info">
           <div class="nm">${escapeHtml(it.name)}</div>
           <div class="badges">
             <span class="cat">${escapeHtml(it.cat)}</span>
-            ${low?'<span class="lowflag">Low</span>':''}
           </div>
-          <div class="meta">First bought ${firstBuy?fmtDate(firstBuy.ts):'—'} · ${it.events.length} ${it.events.length>1?'entries':'entry'}</div>
         </div>
         <div class="ctrl">
           <button class="minus" data-dec="${it.id}" ${total<=0?'disabled':''} aria-label="Use one">−</button>
@@ -354,7 +370,19 @@ list.addEventListener('click', e=>{
 
 iadd.onclick = addItem;
 iname.addEventListener('keydown', e=>{ if(e.key==='Enter') addItem(); });
-iqty.addEventListener('keydown', e=>{ if(e.key==='Enter') addItem(); });
+
+// Quantity stepper
+qinc.onclick = ()=>{ addQty++; qval.textContent=addQty; updateStepper(); };
+qdec.onclick = ()=>{ if(addQty>1){ addQty--; qval.textContent=addQty; updateStepper(); } };
+
+// Category toggle
+document.querySelectorAll('.seg button').forEach(btn=>{
+  btn.onclick = ()=>{
+    addCat = btn.dataset.cat;
+    document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on', b===btn));
+  };
+});
+updateStepper();
 
 // Export / Import
 document.getElementById('export').onclick = ()=>{
