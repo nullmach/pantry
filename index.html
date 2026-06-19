@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f6f3ec;
+    --paper-2:#efeae0;
+    --ink:#26221c;
+    --ink-soft:#6b6356;
+    --line:#ddd6c8;
+    --jar:#c75f3e;
+    --jar-deep:#a84a2e;
+    --leaf:#5b7a4f;
+    --low:#c79a2e;
+    --shadow:rgba(40,34,26,.08);
+    --r:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    padding:0 16px 64px;
+  }
+  .wrap{max-width:640px;margin:0 auto}
+
+  /* Header */
+  header{padding:36px 0 22px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .mark{flex:0 0 auto}
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:900;
+    font-size:38px;
+    letter-spacing:-.02em;
+    line-height:.95;
+  }
+  .tag{font-size:13px;color:var(--ink-soft);margin-top:3px}
+  .io{display:flex;gap:8px}
+  .io button{
+    font:inherit;font-size:12px;font-weight:600;
+    color:var(--ink-soft);background:transparent;
+    border:1px solid var(--line);border-radius:9px;
+    padding:7px 11px;cursor:pointer;transition:.15s;
+  }
+  .io button:hover{border-color:var(--ink-soft);color:var(--ink)}
+
+  /* Add bar */
+  .add{
+    background:#fff;border:1px solid var(--line);border-radius:var(--r);
+    padding:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+    box-shadow:0 1px 0 var(--shadow);margin-bottom:10px;
+  }
+  .add input,.add select{
+    font:inherit;border:1px solid var(--line);border-radius:9px;
+    padding:11px 12px;background:var(--paper);color:var(--ink);
+  }
+  .add input.name{flex:1 1 180px;min-width:0}
+  .add input.qty{width:74px;text-align:center}
+  .add select{flex:0 1 140px}
+  .add input:focus,.add select:focus{outline:2px solid var(--jar);outline-offset:-1px;background:#fff}
+  .add .go{
+    background:var(--jar);color:#fff;border:none;border-radius:9px;
+    padding:11px 18px;font-weight:600;cursor:pointer;transition:.15s;flex:0 0 auto;
+  }
+  .add .go:hover{background:var(--jar-deep)}
+
+  /* Filter row */
+  .filters{display:flex;gap:7px;flex-wrap:wrap;margin:14px 2px 6px;align-items:center}
+  .chip{
+    font-size:12.5px;font-weight:500;color:var(--ink-soft);
+    background:transparent;border:1px solid var(--line);
+    border-radius:20px;padding:5px 13px;cursor:pointer;transition:.15s;
+  }
+  .chip:hover{border-color:var(--ink-soft)}
+  .chip.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .count{margin-left:auto;font-size:12px;color:var(--ink-soft)}
+
+  /* List */
+  ul{list-style:none}
+  .item{
+    background:#fff;border:1px solid var(--line);border-radius:var(--r);
+    margin-top:10px;box-shadow:0 1px 0 var(--shadow);overflow:hidden;
+  }
+  .row{display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer}
+  .total{
+    flex:0 0 auto;width:46px;height:46px;border-radius:11px;
+    background:var(--paper-2);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;line-height:1;
+  }
+  .total .n{font-family:'Fraunces',serif;font-weight:600;font-size:21px}
+  .total .u{font-size:9px;color:var(--ink-soft);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+  .item.zero .total{background:#f4ecec}
+  .item.zero .total .n{color:var(--jar-deep)}
+  .info{flex:1 1 auto;min-width:0}
+  .nm{font-weight:600;font-size:16px;line-height:1.25;overflow-wrap:anywhere}
+  .badges{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:5px}
+  .cat{
+    font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--leaf);background:#eef1e9;padding:2px 7px;border-radius:5px;
+  }
+  .lowflag{font-size:10.5px;font-weight:600;color:var(--low);background:#f7f0db;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.04em}
+  .meta{font-size:12px;color:var(--ink-soft);margin-top:5px}
+  .ctrl{flex:0 0 auto;display:flex;align-items:center;gap:8px}
+  .ctrl button{
+    width:40px;height:40px;border-radius:10px;border:1px solid var(--line);
+    background:var(--paper);font-size:21px;font-weight:600;color:var(--ink);
+    cursor:pointer;transition:.12s;display:flex;align-items:center;justify-content:center;
+    -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  }
+  .ctrl button:hover{background:#fff;border-color:var(--ink-soft)}
+  .ctrl .minus:hover{color:var(--jar);border-color:var(--jar)}
+  .ctrl .plus:hover{color:var(--leaf);border-color:var(--leaf)}
+  .ctrl button:disabled{opacity:.35;cursor:not-allowed}
+
+  /* Detail */
+  .detail{border-top:1px solid var(--line);padding:0 16px;max-height:0;overflow:hidden;transition:max-height .28s ease,padding .28s ease;background:var(--paper)}
+  .item.open .detail{max-height:520px;padding:14px 16px}
+  .detail h3{font-family:'Fraunces',serif;font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:9px}
+  .log{display:flex;flex-direction:column;gap:1px}
+  .ev{display:flex;align-items:center;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .ev:last-child{border-bottom:none}
+  .ev .dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+  .ev.add .dot{background:var(--leaf)}
+  .ev.use .dot{background:var(--jar)}
+  .ev .lbl{font-weight:500}
+  .ev .dt{margin-left:auto;color:var(--ink-soft);font-size:12px}
+  .detail .danger{margin-top:12px;background:transparent;border:1px solid var(--line);color:var(--ink-soft);font:inherit;font-size:12px;font-weight:600;padding:7px 12px;border-radius:9px;cursor:pointer}
+  .detail .danger:hover{border-color:var(--jar);color:var(--jar)}
+
+  /* Empty */
+  .empty{text-align:center;padding:64px 20px;color:var(--ink-soft)}
+  .empty .jar{margin-bottom:18px}
+  .empty p{font-family:'Fraunces',serif;font-size:19px;color:var(--ink)}
+  .empty span{font-size:13.5px}
+
+  footer{text-align:center;margin-top:40px;font-size:11.5px;color:var(--ink-soft)}
+
+  @media (max-width:480px){
+    h1{font-size:32px}
+    .add .go{flex:1 1 100%}
+    .add select{flex:1 1 calc(100% - 82px)}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="mark" width="40" height="46" viewBox="0 0 40 46" fill="none" aria-hidden="true">
+        <path d="M9 14h22l-2.2 27a3 3 0 0 1-3 2.8H14.2a3 3 0 0 1-3-2.8L9 14Z" fill="#fff" stroke="var(--jar)" stroke-width="2.2"/>
+        <path d="M13 8.5C13 6 16 4 20 4s7 2 7 4.5V14H13V8.5Z" fill="var(--jar)"/>
+        <rect x="11" y="20" width="18" height="9" rx="2" fill="#fff" stroke="var(--jar)" stroke-width="1.6"/>
+        <path d="M15 24.5h10M15 24.5l1.5-2h7l1.5 2" stroke="var(--jar)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <div>
+        <h1>Pantry</h1>
+        <div class="tag">What's on the shelf, right now.</div>
+      </div>
+    </div>
+    <div class="io">
+      <button id="export">Export</button>
+      <button id="import">Import</button>
+      <input type="file" id="file" accept="application/json" hidden>
+    </div>
+  </header>
+
+  <div class="add">
+    <input class="name" id="iname" type="text" placeholder="Add an item — e.g. tomato paste" autocomplete="off">
+    <input class="qty" id="iqty" type="number" min="1" value="1" aria-label="Quantity">
+    <select id="icat" aria-label="Category">
+      <option value="Pantry">Pantry</option>
+      <option value="Produce">Produce</option>
+      <option value="Dairy">Dairy</option>
+      <option value="Meat">Meat</option>
+      <option value="Frozen">Frozen</option>
+      <option value="Bakery">Bakery</option>
+      <option value="Drinks">Drinks</option>
+      <option value="Household">Household</option>
+      <option value="Other">Other</option>
+    </select>
+    <button class="go" id="iadd">Add</button>
+  </div>
+
+  <div class="filters" id="filters"></div>
+
+  <ul id="list"></ul>
+
+  <footer>Saved on this device. Use Export to back up or move shelves.</footer>
+</div>
+
+<script>
+const LOW = 2; // low-stock threshold (<=)
+const KEY = 'pantry.v1';
+let items = load();
+let filter = 'All';
+
+function load(){
+  try{ return JSON.parse(localStorage.getItem(KEY)) || []; }
+  catch{ return []; }
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify(items)); }
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function totalOf(it){ return it.events.reduce((s,e)=>s+e.delta,0); }
+function fmtDate(ts){
+  return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+}
+
+function addItem(){
+  const name = iname.value.trim();
+  const qty = Math.max(1, parseInt(iqty.value)||1);
+  const cat = icat.value;
+  if(!name) { iname.focus(); return; }
+  const existing = items.find(i=>i.name.toLowerCase()===name.toLowerCase());
+  if(existing){
+    existing.events.push({delta:qty, ts:Date.now()});
+    existing.cat = cat;
+  } else {
+    items.unshift({id:uid(), name, cat, open:false, events:[{delta:qty, ts:Date.now()}]});
+  }
+  iname.value=''; iqty.value=1; iname.focus();
+  save(); render();
+}
+
+function change(id, delta){
+  const it = items.find(i=>i.id===id);
+  if(!it) return;
+  if(delta<0 && totalOf(it)<=0) return;
+  it.events.push({delta, ts:Date.now()});
+  save(); render();
+}
+
+function remove(id){
+  items = items.filter(i=>i.id!==id);
+  save(); render();
+}
+
+function toggle(id){
+  const it = items.find(i=>i.id===id);
+  it.open = !it.open;
+  render();
+}
+
+function categories(){
+  return [...new Set(items.map(i=>i.cat))].sort();
+}
+
+function renderFilters(){
+  const cats = ['All', ...categories()];
+  filters.innerHTML='';
+  cats.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='chip'+(filter===c?' on':'');
+    b.textContent=c;
+    b.onclick=()=>{filter=c; render();};
+    filters.appendChild(b);
+  });
+  const span=document.createElement('span');
+  span.className='count';
+  const shown = items.filter(i=>filter==='All'||i.cat===filter).length;
+  span.textContent = shown ? `${shown} item${shown>1?'s':''}` : '';
+  filters.appendChild(span);
+}
+
+function render(){
+  renderFilters();
+  list.innerHTML='';
+  const shown = items.filter(i=>filter==='All'||i.cat===filter);
+
+  if(items.length===0){
+    list.innerHTML = `<li class="empty">
+      <svg class="jar" width="56" height="64" viewBox="0 0 40 46" fill="none">
+        <path d="M9 14h22l-2.2 27a3 3 0 0 1-3 2.8H14.2a3 3 0 0 1-3-2.8L9 14Z" fill="#fff" stroke="var(--line)" stroke-width="2.2"/>
+        <path d="M13 8.5C13 6 16 4 20 4s7 2 7 4.5V14H13V8.5Z" fill="var(--line)"/>
+      </svg>
+      <p>Your shelves are empty.</p>
+      <span>Add your first item above to start tracking.</span>
+    </li>`;
+    return;
+  }
+
+  shown.forEach(it=>{
+    const total = totalOf(it);
+    const low = total>0 && total<=LOW;
+    const li=document.createElement('li');
+    li.className='item'+(it.open?' open':'')+(total<=0?' zero':'');
+
+    const events = [...it.events].reverse();
+    const logHtml = events.map(e=>{
+      const isAdd = e.delta>0;
+      return `<div class="ev ${isAdd?'add':'use'}">
+        <span class="dot"></span>
+        <span class="lbl">${isAdd?'Added '+e.delta:'Used '+Math.abs(e.delta)}</span>
+        <span class="dt">${fmtDate(e.ts)}</span>
+      </div>`;
+    }).join('');
+
+    const firstBuy = it.events.find(e=>e.delta>0);
+
+    li.innerHTML = `
+      <div class="row" data-toggle="${it.id}">
+        <div class="total">
+          <span class="n">${total}</span>
+          <span class="u">on hand</span>
+        </div>
+        <div class="info">
+          <div class="nm">${escapeHtml(it.name)}</div>
+          <div class="badges">
+            <span class="cat">${escapeHtml(it.cat)}</span>
+            ${low?'<span class="lowflag">Low</span>':''}
+          </div>
+          <div class="meta">First bought ${firstBuy?fmtDate(firstBuy.ts):'—'} · ${it.events.length} ${it.events.length>1?'entries':'entry'}</div>
+        </div>
+        <div class="ctrl">
+          <button class="minus" data-dec="${it.id}" ${total<=0?'disabled':''} aria-label="Use one">−</button>
+          <button class="plus" data-inc="${it.id}" aria-label="Add one">+</button>
+        </div>
+      </div>
+      <div class="detail">
+        <h3>History</h3>
+        <div class="log">${logHtml}</div>
+        <button class="danger" data-del="${it.id}">Remove item</button>
+      </div>`;
+    list.appendChild(li);
+  });
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Events (delegated)
+list.addEventListener('click', e=>{
+  const inc=e.target.closest('[data-inc]');
+  const dec=e.target.closest('[data-dec]');
+  const del=e.target.closest('[data-del]');
+  const tog=e.target.closest('[data-toggle]');
+  if(inc){ e.stopPropagation(); change(inc.dataset.inc, 1); return; }
+  if(dec){ e.stopPropagation(); change(dec.dataset.dec, -1); return; }
+  if(del){ e.stopPropagation(); remove(del.dataset.del); return; }
+  if(tog){ toggle(tog.dataset.toggle); }
+});
+
+iadd.onclick = addItem;
+iname.addEventListener('keydown', e=>{ if(e.key==='Enter') addItem(); });
+iqty.addEventListener('keydown', e=>{ if(e.key==='Enter') addItem(); });
+
+// Export / Import
+document.getElementById('export').onclick = ()=>{
+  const blob=new Blob([JSON.stringify(items,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`pantry-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+document.getElementById('import').onclick = ()=>file.click();
+file.onchange = ()=>{
+  const f=file.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const data=JSON.parse(r.result);
+      if(!Array.isArray(data)) throw 0;
+      items=data; save(); render();
+    }catch{ alert("That file isn't a valid Pantry backup."); }
+    file.value='';
+  };
+  r.readAsText(f);
+};
+
+render();
+</script>
+</body>
+</html>
