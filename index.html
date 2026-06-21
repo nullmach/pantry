@@ -298,7 +298,9 @@ function renderFilters(){
 function render(){
   renderFilters();
   list.innerHTML='';
-  const shown = items.filter(i=>filter==='All'||i.cat===filter);
+  const shown = items
+    .filter(i=>filter==='All'||i.cat===filter)
+    .sort((a,b)=>a.name.localeCompare(b.name, undefined, {sensitivity:'base', numeric:true}));
 
   if(items.length===0){
     list.innerHTML = `<li class="empty">
